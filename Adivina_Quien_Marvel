@@ -1,0 +1,712 @@
+
+import tkinter as tk
+from tkinter import messagebox
+from PIL import Image, ImageTk
+import json
+import os
+
+# ============================================
+# CONFIGURACIÓN
+# ============================================
+
+ARCHIVO_DATOS = "personajes_marvel.json"
+CARPETA_FOTOS = "Fotos_Spr_Marvel"
+
+# ============================================
+# PERSONAJES
+# ============================================
+
+personajes_iniciales = {
+
+    "Iron Man": {
+        "es hombre": "si",
+        "usa magia": "no",
+        "usa martillo": "no",
+        "usa capa": "no",
+        "usa tecnología": "si",
+        "controla clima": "no",
+        "usa máscara": "si",
+        "es científico": "si",
+        "puede volar": "si",
+        "tiene superfuerza": "no",
+        "usa armadura": "si",
+        "es vengador": "si",
+        "tiene traje rojo": "si",
+        "es verde": "no",
+        "usa espada": "no"
+    },
+
+    "Spider-Man": {
+        "es hombre": "si",
+        "usa magia": "no",
+        "usa martillo": "no",
+        "usa capa": "no",
+        "usa tecnología": "si",
+        "controla clima": "no",
+        "usa máscara": "si",
+        "es científico": "si",
+        "puede volar": "no",
+        "tiene superfuerza": "si",
+        "usa armadura": "no",
+        "es vengador": "si",
+        "tiene traje rojo": "si",
+        "es verde": "no",
+        "usa espada": "no"
+    },
+
+    "Thor": {
+        "es hombre": "si",
+        "usa magia": "si",
+        "usa martillo": "si",
+        "usa capa": "si",
+        "usa tecnología": "no",
+        "controla clima": "si",
+        "usa máscara": "no",
+        "es científico": "no",
+        "puede volar": "si",
+        "tiene superfuerza": "si",
+        "usa armadura": "si",
+        "es vengador": "si",
+        "tiene traje rojo": "no",
+        "es verde": "no",
+        "usa espada": "no"
+    },
+
+    "Doctor Strange": {
+        "es hombre": "si",
+        "usa magia": "si",
+        "usa martillo": "no",
+        "usa capa": "si",
+        "usa tecnología": "no",
+        "controla clima": "no",
+        "usa máscara": "no",
+        "es científico": "si",
+        "puede volar": "si",
+        "tiene superfuerza": "no",
+        "usa armadura": "no",
+        "es vengador": "si",
+        "tiene traje rojo": "no",
+        "es verde": "no",
+        "usa espada": "no"
+    },
+
+    "Hulk": {
+        "es hombre": "si",
+        "usa magia": "no",
+        "usa martillo": "no",
+        "usa capa": "no",
+        "usa tecnología": "no",
+        "controla clima": "no",
+        "usa máscara": "no",
+        "es científico": "si",
+        "puede volar": "no",
+        "tiene superfuerza": "si",
+        "usa armadura": "no",
+        "es vengador": "si",
+        "tiene traje rojo": "no",
+        "es verde": "si",
+        "usa espada": "no"
+    },
+
+    "Scarlet Witch": {
+        "es hombre": "no",
+        "usa magia": "si",
+        "usa martillo": "no",
+        "usa capa": "no",
+        "usa tecnología": "no",
+        "controla clima": "no",
+        "usa máscara": "no",
+        "es científico": "no",
+        "puede volar": "si",
+        "tiene superfuerza": "no",
+        "usa armadura": "no",
+        "es vengador": "si",
+        "tiene traje rojo": "si",
+        "es verde": "no",
+        "usa espada": "no"
+    },
+
+    "Black Widow": {
+        "es hombre": "no",
+        "usa magia": "no",
+        "usa martillo": "no",
+        "usa capa": "no",
+        "usa tecnología": "si",
+        "controla clima": "no",
+        "usa máscara": "no",
+        "es científico": "no",
+        "puede volar": "no",
+        "tiene superfuerza": "no",
+        "usa armadura": "no",
+        "es vengador": "si",
+        "tiene traje rojo": "no",
+        "es verde": "no",
+        "usa espada": "no"
+    },
+    "Captain Marvel": {
+        "es hombre": "no",
+        "usa armadura": "si",
+        "puede volar": "si",
+        "usa magia": "no",
+        "es humano": "si",
+        "tiene superfuerza": "si",
+        "usa capa": "no",
+        "es millonario": "no",
+        "usa martillo": "no",
+        "usa escudo": "no",
+        "tiene poderes cósmicos": "si",
+        "es vengador": "si",
+        "usa tecnología": "no",
+        "tiene traje rojo": "no",
+        "es alienígena": "no",
+        "usa espada": "no",
+        "controla energía": "si",
+        "es científico": "no",
+        "usa máscara": "no",
+        "controla clima": "no",
+        "es verde": "no",
+        "tiene color de cabello diferente": "si"
+    },
+
+    "Gamora": {
+        "es hombre": "no",
+        "usa armadura": "si",
+        "puede volar": "no",
+        "usa magia": "no",
+        "es humano": "no",
+        "tiene superfuerza": "si",
+        "usa capa": "no",
+        "es millonario": "no",
+        "usa martillo": "no",
+        "usa escudo": "no",
+        "tiene poderes cósmicos": "no",
+        "es vengador": "no",
+        "usa tecnología": "si",
+        "tiene traje rojo": "no",
+        "es alienígena": "si",
+        "usa espada": "si",
+        "controla energía": "no",
+        "es científico": "no",
+        "usa máscara": "no",
+        "controla clima": "no",
+        "es verde": "si",
+        "tiene color de cabello diferente": "si"
+    },
+
+    "Storm": {
+        "es hombre": "no",
+        "usa armadura": "no",
+        "puede volar": "si",
+        "usa magia": "si",
+        "es humano": "si",
+        "tiene superfuerza": "no",
+        "usa capa": "si",
+        "es millonario": "no",
+        "usa martillo": "no",
+        "usa escudo": "no",
+        "tiene poderes cósmicos": "no",
+        "es vengador": "no",
+        "usa tecnología": "no",
+        "tiene traje rojo": "no",
+        "es alienígena": "no",
+        "usa espada": "no",
+        "controla energía": "si",
+        "es científico": "no",
+        "usa máscara": "no",
+        "controla clima": "si",
+        "es verde": "no",
+        "tiene color de cabello diferente": "si"
+    }
+}
+
+# ============================================
+# CARGAR DATOS
+# ============================================
+
+if os.path.exists(ARCHIVO_DATOS):
+
+    with open(ARCHIVO_DATOS, "r") as archivo:
+        personajes = json.load(archivo)
+
+else:
+
+    personajes = personajes_iniciales
+
+    with open(ARCHIVO_DATOS, "w") as archivo:
+        json.dump(personajes, archivo, indent=4)
+
+# ============================================
+# PREGUNTAS
+# ============================================
+
+preguntas = [
+    "es hombre",
+    "usa magia",
+    "usa martillo",
+    "usa capa",
+    "usa tecnología",
+    "controla clima",
+    "usa máscara",
+    "es científico",
+    "puede volar",
+    "tiene superfuerza",
+    "usa armadura",
+    "es vengador",
+    "tiene traje rojo",
+    "es verde",
+    "usa espada"
+]
+
+# ============================================
+# INTERFAZ
+# ============================================
+
+ventana = tk.Tk()
+ventana.title("Adivina Quién - Marvel")
+ventana.geometry("1300x850")
+ventana.config(bg="#111111")
+
+titulo = tk.Label(
+    ventana,
+    text="ADIVINA QUIÉN - MARVEL",
+    font=("Arial", 26, "bold"),
+    fg="red",
+    bg="#111111"
+)
+
+titulo.pack(pady=10)
+
+texto = tk.Label(
+    ventana,
+    text="",
+    font=("Arial", 18, "bold"),
+    fg="white",
+    bg="#111111"
+)
+
+texto.pack(pady=15)
+
+imagen_label = tk.Label(
+    ventana,
+    bg="#111111"
+)
+
+imagen_label.pack()
+
+frame_botones = tk.Frame(
+    ventana,
+    bg="#111111"
+)
+
+frame_botones.pack(pady=15)
+
+frame_personajes = tk.Frame(
+    ventana,
+    bg="#111111"
+)
+
+frame_personajes.pack(pady=20)
+
+btn_salir = tk.Button(
+    ventana,
+    text="SALIR",
+    bg="gray",
+    fg="white",
+    width=15,
+    height=2,
+    font=("Arial", 12, "bold"),
+    command=ventana.destroy
+)
+
+btn_salir.pack(pady=5)
+
+# ============================================
+# VARIABLES
+# ============================================
+
+indice_pregunta = 0
+respuestas_usuario = {}
+personajes_descartados = []
+
+# ============================================
+# FUNCIONES
+# ============================================
+
+def obtener_ruta(nombre):
+
+    png = os.path.join(CARPETA_FOTOS, nombre + ".png")
+    jpg = os.path.join(CARPETA_FOTOS, nombre + ".jpg")
+
+    if os.path.exists(png):
+        return png
+
+    if os.path.exists(jpg):
+        return jpg
+
+    return None
+
+def mostrar_imagen(nombre):
+
+    ruta = obtener_ruta(nombre)
+
+    if ruta:
+
+        img = Image.open(ruta)
+        img = img.resize((250, 250))
+
+        img = ImageTk.PhotoImage(img)
+
+        imagen_label.config(image=img)
+        imagen_label.image = img
+
+def mostrar_tablero():
+
+    imagenes = []
+
+    for widget in frame_personajes.winfo_children():
+        widget.destroy()
+
+    fila = 0
+    columna = 0
+
+    for nombre in personajes:
+
+        frame = tk.Frame(
+            frame_personajes,
+            bg="#222222",
+            bd=3,
+            relief="ridge"
+        )
+
+        frame.grid(
+            row=fila,
+            column=columna,
+            padx=10,
+            pady=10
+        )
+
+        ruta = obtener_ruta(nombre)
+
+        if ruta:
+
+            img = Image.open(ruta)
+            img = img.resize((100, 100))
+
+            img = ImageTk.PhotoImage(img)
+
+            imagenes.append(img)
+
+            label = tk.Label(
+                frame,
+                image=img,
+                bg="#222222"
+            )
+
+            label.image = img
+            label.pack()
+
+        tk.Label(
+            frame,
+            text=nombre,
+            fg="white",
+            bg="#222222",
+            font=("Arial", 10, "bold")
+        ).pack()
+
+        columna += 1
+
+        if columna >= 5:
+            columna = 0
+            fila += 1
+
+    frame_personajes.imagenes = imagenes
+
+def siguiente_pregunta():
+
+    global indice_pregunta
+
+    if indice_pregunta < len(preguntas):
+
+        texto.config(
+            text=f"¿Tu personaje {preguntas[indice_pregunta]}?"
+        )
+
+    else:
+
+        adivinar()
+
+def responder(valor):
+
+    global indice_pregunta
+
+    pregunta = preguntas[indice_pregunta]
+
+    respuestas_usuario[pregunta] = valor
+
+    indice_pregunta += 1
+
+    siguiente_pregunta()
+
+def adivinar():
+
+    puntuaciones = {}
+
+    for nombre, atributos in personajes.items():
+
+        if nombre in personajes_descartados:
+            continue
+
+        puntos = 0
+
+        for pregunta, respuesta in respuestas_usuario.items():
+
+            if atributos.get(pregunta) == respuesta:
+                puntos += 1
+
+        puntuaciones[nombre] = puntos
+
+    if not puntuaciones:
+
+        aprender()
+        return
+
+    mejor = max(puntuaciones, key=puntuaciones.get)
+
+    mostrar_imagen(mejor)
+
+    correcto = messagebox.askyesno(
+        "Resultado",
+        f"¿Tu personaje es {mejor}?"
+    )
+
+    if correcto:
+
+        messagebox.showinfo(
+            "Correcto",
+            "¡He adivinado correctamente!"
+        )
+
+        reiniciar()
+
+    else:
+
+        personajes_descartados.append(mejor)
+
+        quedan = len(personajes) - len(personajes_descartados)
+
+        if quedan > 0:
+
+            seguir = messagebox.askyesno(
+                "Seguir",
+                "No era ese personaje.\n\n¿Quieres que siga intentando?"
+            )
+
+            if seguir:
+
+                adivinar()
+
+            else:
+
+                aprender()
+
+        else:
+
+            aprender()
+
+def reiniciar():
+
+    global indice_pregunta
+    global respuestas_usuario
+    global personajes_descartados
+
+    indice_pregunta = 0
+    respuestas_usuario = {}
+    personajes_descartados = []
+
+    imagen_label.config(image="")
+
+    siguiente_pregunta()
+
+def aprender():
+
+    ventana_aprender = tk.Toplevel()
+    ventana_aprender.title("Aprender Personaje")
+    ventana_aprender.geometry("500x700")
+    ventana_aprender.config(bg="#222222")
+
+    tk.Label(
+        ventana_aprender,
+        text="Nuevo Personaje",
+        font=("Arial", 18, "bold"),
+        fg="white",
+        bg="#222222"
+    ).pack(pady=10)
+
+    nombre_var = tk.StringVar()
+
+    tk.Entry(
+        ventana_aprender,
+        textvariable=nombre_var,
+        font=("Arial", 14),
+        width=25
+    ).pack(pady=10)
+
+    respuestas_vars = {}
+
+    canvas = tk.Canvas(
+        ventana_aprender,
+        bg="#222222",
+        highlightthickness=0
+    )
+
+    scrollbar = tk.Scrollbar(
+        ventana_aprender,
+        orient="vertical",
+        command=canvas.yview
+    )
+
+    scroll_frame = tk.Frame(
+        canvas,
+        bg="#222222"
+    )
+
+    scroll_frame.bind(
+        "<Configure>",
+        lambda e: canvas.configure(
+            scrollregion=canvas.bbox("all")
+        )
+    )
+
+    canvas.create_window(
+        (0, 0),
+        window=scroll_frame,
+        anchor="nw"
+    )
+
+    canvas.configure(
+        yscrollcommand=scrollbar.set
+    )
+
+    canvas.pack(side="left", fill="both", expand=True)
+    scrollbar.pack(side="right", fill="y")
+
+    for pregunta in preguntas:
+
+        frame = tk.Frame(
+            scroll_frame,
+            bg="#222222"
+        )
+
+        frame.pack(anchor="w", pady=5, padx=10)
+
+        tk.Label(
+            frame,
+            text=f"¿{pregunta}?",
+            fg="white",
+            bg="#222222",
+            font=("Arial", 11)
+        ).pack(side="left")
+
+        var = tk.StringVar(value="no")
+
+        respuestas_vars[pregunta] = var
+
+        tk.Radiobutton(
+            frame,
+            text="Sí",
+            variable=var,
+            value="si",
+            bg="#222222",
+            fg="white",
+            selectcolor="#444444"
+        ).pack(side="left", padx=10)
+
+        tk.Radiobutton(
+            frame,
+            text="No",
+            variable=var,
+            value="no",
+            bg="#222222",
+            fg="white",
+            selectcolor="#444444"
+        ).pack(side="left")
+
+    def guardar():
+
+        nombre = nombre_var.get().strip()
+
+        if nombre == "":
+            return
+
+        personajes[nombre] = {}
+
+        for pregunta in preguntas:
+
+            personajes[nombre][pregunta] = respuestas_vars[pregunta].get()
+
+        with open(ARCHIVO_DATOS, "w") as archivo:
+
+            json.dump(
+                personajes,
+                archivo,
+                indent=4
+            )
+
+        messagebox.showinfo(
+            "Aprendido",
+            f"He aprendido sobre {nombre}"
+        )
+
+        ventana_aprender.destroy()
+
+        mostrar_tablero()
+        reiniciar()
+
+    tk.Button(
+        ventana_aprender,
+        text="Guardar Personaje",
+        bg="green",
+        fg="white",
+        width=20,
+        height=2,
+        font=("Arial", 12, "bold"),
+        command=guardar
+    ).pack(pady=20)
+
+# ============================================
+# BOTONES
+# ============================================
+
+btn_si = tk.Button(
+    frame_botones,
+    text="SÍ",
+    width=15,
+    height=2,
+    bg="green",
+    fg="white",
+    font=("Arial", 12, "bold"),
+    command=lambda: responder("si")
+)
+
+btn_no = tk.Button(
+    frame_botones,
+    text="NO",
+    width=15,
+    height=2,
+    bg="red",
+    fg="white",
+    font=("Arial", 12, "bold"),
+    command=lambda: responder("no")
+)
+
+btn_si.grid(row=0, column=0, padx=20)
+btn_no.grid(row=0, column=1, padx=20)
+
+# ============================================
+# INICIAR
+# ============================================
+
+mostrar_tablero()
+siguiente_pregunta()
+
+ventana.mainloop()
