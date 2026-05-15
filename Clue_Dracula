@@ -1,0 +1,1090 @@
+
+import tkinter as tk
+from tkinter import messagebox, ttk
+from PIL import Image, ImageTk
+import random
+import os
+
+# =========================================================
+# CONFIG
+# =========================================================
+
+ANCHO = 1280
+ALTO = 720
+
+root = tk.Tk()
+
+root.title("CLUE DRÁCULA")
+
+root.geometry(f"{ANCHO}x{ALTO}")
+
+root.configure(bg="black")
+
+# =========================================================
+# VARIABLES
+# =========================================================
+
+indice = 0
+
+fase = 1
+
+habitaciones_visitadas = []
+
+cuaderno_abierto = False
+
+dialogo_actual = None
+
+# =========================================================
+# RUTA
+# =========================================================
+
+BASE_DIR = os.path.dirname(
+    os.path.abspath(__file__)
+)
+
+def ruta(*paths):
+
+    return os.path.join(
+        BASE_DIR,
+        *paths
+    )
+
+# =========================================================
+# CANVAS
+# =========================================================
+
+canvas = tk.Canvas(
+    root,
+    width=ANCHO,
+    height=ALTO,
+    highlightthickness=0
+)
+
+canvas.pack()
+
+# =========================================================
+# PERSONAJES
+# =========================================================
+
+personajes = [
+
+    {
+        "nombre": "Jenny Yellow",
+
+        "profesion": "Caza Tesoros",
+
+        "sospecha": 0,
+
+        "dialogos": [
+
+            "El oro del castillo parece diferente.",
+
+            "Escuché cadenas debajo de la bóveda.",
+
+            "Drácula ocultaba secretos."
+        ],
+
+        "preguntas": {
+
+            "¿Dónde estabas?":
+            "Exploraba la bóveda.",
+
+            "¿Escuchaste algo?":
+            "Escuché cadenas.",
+
+            "¿Conocías a Drácula?":
+            "Sí... demasiado bien."
+        }
+    },
+
+    {
+        "nombre": "Astrid White",
+
+        "profesion": "Bibliotecaria",
+
+        "sospecha": 0,
+
+        "dialogos": [
+
+            "Los libros hablan sobre maldiciones.",
+
+            "Alguien robó páginas prohibidas.",
+
+            "La biblioteca nunca duerme."
+        ],
+
+        "preguntas": {
+
+            "¿Dónde estabas?":
+            "En la biblioteca.",
+
+            "¿Escuchaste algo?":
+            "Un grito distante.",
+
+            "¿Conocías a Drácula?":
+            "Era peligroso."
+        }
+    },
+
+    {
+        "nombre": "Marcus Green",
+
+        "profesion": "Guardia",
+
+        "sospecha": 0,
+
+        "dialogos": [
+
+            "Nadie debía entrar al cuarto.",
+
+            "Escuché un disparo.",
+
+            "Vi una sombra bajar."
+        ],
+
+        "preguntas": {
+
+            "¿Dónde estabas?":
+            "Patrullando.",
+
+            "¿Escuchaste algo?":
+            "Pasos rápidos.",
+
+            "¿Conocías a Drácula?":
+            "Trabajé para él."
+        }
+    },
+
+    {
+        "nombre": "Victor Gray",
+
+        "profesion": "Sepulturero",
+
+        "sospecha": 0,
+
+        "dialogos": [
+
+            "Las tumbas están abiertas.",
+
+            "Algo salió del cementerio.",
+
+            "No confío en nadie."
+        ],
+
+        "preguntas": {
+
+            "¿Dónde estabas?":
+            "En el cementerio.",
+
+            "¿Escuchaste algo?":
+            "Algo cavaba.",
+
+            "¿Conocías a Drácula?":
+            "Todos le temían."
+        }
+    },
+
+    {
+        "nombre": "Carlos Brown",
+
+        "profesion": "Chef",
+
+        "sospecha": 0,
+
+        "dialogos": [
+
+            "La cena fue cancelada.",
+
+            "Alguien estaba en la cocina.",
+
+            "Encontré sangre."
+        ],
+
+        "preguntas": {
+
+            "¿Dónde estabas?":
+            "Cocinando.",
+
+            "¿Escuchaste algo?":
+            "Platos romperse.",
+
+            "¿Conocías a Drácula?":
+            "Nunca hablaba conmigo."
+        }
+    }
+]
+
+# =========================================================
+# ARMAS
+# =========================================================
+
+armas = [
+
+    "Estaca",
+
+    "Veneno",
+
+    "Cuchillo",
+
+    "Revolver",
+
+    "Hacha"
+]
+
+# =========================================================
+# HABITACIONES
+# =========================================================
+
+habitaciones = [
+
+    {
+        "nombre": "Bóveda Secreta",
+
+        "imagen": ruta(
+            "Imagenes_Clue_Dracula",
+            "boveda.png"
+        ),
+
+        "personaje": personajes[0],
+
+        "pista_oculta": {
+
+            "nombre": "Huella de sangre",
+
+            "x": 300,
+
+            "y": 400,
+
+            "encontrada": False
+        }
+    },
+
+    {
+        "nombre": "Biblioteca Infinita",
+
+        "imagen": ruta(
+            "Imagenes_Clue_Dracula",
+            "biblioteca.png"
+        ),
+
+        "personaje": personajes[1],
+
+        "pista_oculta": {
+
+            "nombre": "Página quemada",
+
+            "x": 500,
+
+            "y": 350,
+
+            "encontrada": False
+        }
+    },
+
+    {
+        "nombre": "Habitación de Drácula",
+
+        "imagen": ruta(
+            "Imagenes_Clue_Dracula",
+            "dracula_room.png"
+        ),
+
+        "personaje": personajes[2],
+
+        "pista_oculta": {
+
+            "nombre": "Casquillo",
+
+            "x": 650,
+
+            "y": 500,
+
+            "encontrada": False
+        }
+    },
+
+    {
+        "nombre": "Cementerio Privado",
+
+        "imagen": ruta(
+            "Imagenes_Clue_Dracula",
+            "cementerio.png"
+        ),
+
+        "personaje": personajes[3],
+
+        "pista_oculta": {
+
+            "nombre": "Tierra removida",
+
+            "x": 450,
+
+            "y": 450,
+
+            "encontrada": False
+        }
+    },
+
+    {
+        "nombre": "Cocina del Castillo",
+
+        "imagen": ruta(
+            "Imagenes_Clue_Dracula",
+            "cocina.png"
+        ),
+
+        "personaje": personajes[4],
+
+        "pista_oculta": {
+
+            "nombre": "Cuchillo ensangrentado",
+
+            "x": 700,
+
+            "y": 350,
+
+            "encontrada": False
+        }
+    }
+]
+
+# =========================================================
+# REPARTIR ARMAS
+# =========================================================
+
+armas_mezcladas = armas.copy()
+
+random.shuffle(
+    armas_mezcladas
+)
+
+for i in range(len(habitaciones)):
+
+    habitaciones[i]["arma"] = armas_mezcladas[i]
+
+# =========================================================
+# SOLUCION
+# =========================================================
+
+culpable = random.choice(personajes)
+
+arma_real = random.choice(armas)
+
+lugar_real = random.choice(habitaciones)
+
+# =========================================================
+# MENU
+# =========================================================
+
+menu_img = Image.open(
+
+    ruta(
+        "Imagenes_Clue_Dracula",
+        "menu.png"
+    )
+)
+
+menu_img = menu_img.resize(
+    (ANCHO, ALTO)
+)
+
+menu_tk = ImageTk.PhotoImage(
+    menu_img
+)
+
+# =========================================================
+# CARGAR HABITACION
+# =========================================================
+
+def cargar_habitacion():
+
+    global dialogo_actual
+    global fase
+    global fondo_tk
+
+    canvas.delete("all")
+
+    habitacion = habitaciones[indice]
+
+    # =====================================================
+    # VISITAS
+    # =====================================================
+
+    if (
+        habitacion["nombre"]
+        not in habitaciones_visitadas
+    ):
+
+        habitaciones_visitadas.append(
+            habitacion["nombre"]
+        )
+
+    # =====================================================
+    # FASE 2
+    # =====================================================
+
+    if (
+        len(habitaciones_visitadas)
+        ==
+        len(habitaciones)
+
+        and
+
+        fase == 1
+    ):
+
+        fase = 2
+
+        messagebox.showinfo(
+            "FASE 2",
+            "Tus poderes vampíricos despertaron."
+        )
+
+    # =====================================================
+    # FONDO
+    # =====================================================
+
+    fondo = Image.open(
+        habitacion["imagen"]
+    )
+
+    fondo = fondo.resize(
+        (ANCHO, ALTO)
+    )
+
+    fondo_tk = ImageTk.PhotoImage(
+        fondo
+    )
+
+    canvas.create_image(
+        0,
+        0,
+        anchor="nw",
+        image=fondo_tk
+    )
+
+    # =====================================================
+    # OVERLAY
+    # =====================================================
+
+    color_overlay = "black"
+
+    if fase == 2:
+        color_overlay = "#220000"
+
+    canvas.create_rectangle(
+        0,
+        0,
+        ANCHO,
+        ALTO,
+        fill=color_overlay,
+        stipple="gray25"
+    )
+
+    # =====================================================
+    # PANEL DERECHO
+    # =====================================================
+
+    canvas.create_rectangle(
+        1040,
+        0,
+        1280,
+        720,
+        fill="#111111",
+        outline="darkred",
+        width=4
+    )
+
+    # =====================================================
+    # TITULO
+    # =====================================================
+
+    canvas.create_text(
+        500,
+        40,
+        text=habitacion["nombre"],
+        fill="white",
+        font=("Times New Roman", 30, "bold")
+    )
+
+    # =====================================================
+    # PERSONAJE
+    # =====================================================
+
+    personaje = habitacion["personaje"]
+
+    canvas.create_rectangle(
+        20,
+        560,
+        500,
+        690,
+        fill="#111111",
+        outline="darkred",
+        width=3
+    )
+
+    canvas.create_text(
+        50,
+        595,
+        anchor="w",
+        text=personaje["nombre"],
+        fill="gold",
+        font=("Arial", 18, "bold")
+    )
+
+    canvas.create_text(
+        50,
+        625,
+        anchor="w",
+        text=personaje["profesion"],
+        fill="white",
+        font=("Arial", 12)
+    )
+
+    dialogo = random.choice(
+        personaje["dialogos"]
+    )
+
+    dialogo_actual = canvas.create_text(
+        50,
+        660,
+        anchor="w",
+        width=420,
+        text=f'"{dialogo}"',
+        fill="#cccccc",
+        font=("Arial", 10, "italic")
+    )
+
+    root.after(
+        2000,
+        lambda: canvas.delete(dialogo_actual)
+    )
+
+    # =====================================================
+    # EVIDENCIA
+    # =====================================================
+
+    canvas.create_text(
+        850,
+        100,
+        text=f"🔪 {habitacion['arma']}",
+        fill="red",
+        font=("Arial", 18, "bold")
+    )
+
+    # =====================================================
+    # PISTA OCULTA
+    # =====================================================
+
+    pista = habitacion["pista_oculta"]
+
+    if (
+        fase == 2
+        and
+        not pista["encontrada"]
+    ):
+
+        canvas.create_oval(
+            pista["x"],
+            pista["y"],
+            pista["x"] + 20,
+            pista["y"] + 20,
+            fill="darkred",
+            outline="red"
+        )
+
+# =========================================================
+# CLICK MAPA
+# =========================================================
+
+def click_mapa(event):
+
+    if fase != 2:
+        return
+
+    habitacion = habitaciones[indice]
+
+    pista = habitacion["pista_oculta"]
+
+    if pista["encontrada"]:
+        return
+
+    if (
+
+        abs(event.x - pista["x"]) < 40
+
+        and
+
+        abs(event.y - pista["y"]) < 40
+    ):
+
+        pista["encontrada"] = True
+
+        personaje = habitacion["personaje"]
+
+        personaje["sospecha"] += random.randint(1, 3)
+
+        messagebox.showinfo(
+            "PISTA",
+            f"Encontraste:\n{pista['nombre']}"
+        )
+
+        cargar_habitacion()
+
+# =========================================================
+# INVESTIGAR
+# =========================================================
+
+def investigar():
+
+    if fase == 1:
+
+        messagebox.showinfo(
+            "EXPLORACIÓN",
+            "Primero explora todas las habitaciones."
+        )
+
+        return
+
+    habitacion = habitaciones[indice]
+
+    personaje = habitacion["personaje"]
+
+    personaje["sospecha"] += random.randint(1, 3)
+
+    pistas = [
+
+        "Escuchaste un susurro.",
+
+        "Tu visión vampírica detectó miedo.",
+
+        "Sentiste olor a sangre.",
+
+        "Algo oscuro observa esta habitación.",
+
+        "El sospechoso parece nervioso."
+    ]
+
+    pista = random.choice(pistas)
+
+    messagebox.showinfo(
+        "INVESTIGACIÓN",
+        pista
+    )
+
+# =========================================================
+# INTERROGAR
+# =========================================================
+
+def interrogar():
+
+    if fase != 2:
+
+        messagebox.showinfo(
+            "BLOQUEADO",
+            "Completa la exploración primero."
+        )
+
+        return
+
+    habitacion = habitaciones[indice]
+
+    personaje = habitacion["personaje"]
+
+    ventana = tk.Toplevel(root)
+
+    ventana.title("Interrogatorio")
+
+    ventana.geometry("500x400")
+
+    ventana.config(bg="#111111")
+
+    tk.Label(
+        ventana,
+        text=f"Interrogando a {personaje['nombre']}",
+        bg="#111111",
+        fg="gold",
+        font=("Arial", 18, "bold")
+    ).pack(pady=20)
+
+    for pregunta in personaje["preguntas"]:
+
+        def responder(p=pregunta):
+
+            respuesta = personaje["preguntas"][p]
+
+            personaje["sospecha"] += random.randint(0, 2)
+
+            messagebox.showinfo(
+                p,
+                respuesta
+            )
+
+        tk.Button(
+            ventana,
+            text=pregunta,
+            command=responder,
+            bg="#222",
+            fg="white"
+        ).pack(
+            fill="x",
+            padx=20,
+            pady=5
+        )
+
+# =========================================================
+# CUADERNO
+# =========================================================
+
+def abrir_cuaderno():
+
+    global cuaderno_abierto
+
+    if cuaderno_abierto:
+        return
+
+    cuaderno_abierto = True
+
+    ventana = tk.Toplevel(root)
+
+    ventana.title("Cuaderno")
+
+    ventana.geometry("500x700")
+
+    ventana.config(bg="#1b1b1b")
+
+    tk.Label(
+        ventana,
+        text="CUADERNO",
+        bg="#1b1b1b",
+        fg="gold",
+        font=("Arial", 24, "bold")
+    ).pack(pady=20)
+
+    tk.Label(
+        ventana,
+        text="SOSPECHOSOS",
+        bg="#1b1b1b",
+        fg="white",
+        font=("Arial", 18, "bold")
+    ).pack()
+
+    for p in personajes:
+
+        barra = "█" * p["sospecha"]
+
+        texto = f'{p["nombre"]} {barra}'
+
+        tk.Label(
+            ventana,
+            text=texto,
+            bg="#1b1b1b",
+            fg="red",
+            font=("Arial", 14)
+        ).pack(anchor="w", padx=40)
+
+    def cerrar():
+
+        global cuaderno_abierto
+
+        cuaderno_abierto = False
+
+        ventana.destroy()
+
+    ventana.protocol(
+        "WM_DELETE_WINDOW",
+        cerrar
+    )
+
+# =========================================================
+# ACUSAR
+# =========================================================
+
+def acusar():
+
+    ventana = tk.Toplevel(root)
+
+    ventana.title("Acusación")
+
+    ventana.geometry("400x350")
+
+    ventana.config(bg="#111111")
+
+    sospechoso_var = tk.StringVar()
+
+    arma_var = tk.StringVar()
+
+    lugar_var = tk.StringVar()
+
+    tk.Label(
+        ventana,
+        text="SOSPECHOSO",
+        bg="#111111",
+        fg="white"
+    ).pack()
+
+    ttk.Combobox(
+        ventana,
+        textvariable=sospechoso_var,
+        values=[
+            p["nombre"]
+            for p in personajes
+        ]
+    ).pack(pady=10)
+
+    tk.Label(
+        ventana,
+        text="ARMA",
+        bg="#111111",
+        fg="white"
+    ).pack()
+
+    ttk.Combobox(
+        ventana,
+        textvariable=arma_var,
+        values=armas
+    ).pack(pady=10)
+
+    tk.Label(
+        ventana,
+        text="LUGAR",
+        bg="#111111",
+        fg="white"
+    ).pack()
+
+    ttk.Combobox(
+        ventana,
+        textvariable=lugar_var,
+        values=[
+            h["nombre"]
+            for h in habitaciones
+        ]
+    ).pack(pady=10)
+
+    def confirmar():
+
+        correcto = (
+
+            sospechoso_var.get()
+            ==
+            culpable["nombre"]
+
+            and
+
+            arma_var.get()
+            ==
+            arma_real
+
+            and
+
+            lugar_var.get()
+            ==
+            lugar_real["nombre"]
+        )
+
+        if correcto:
+
+            messagebox.showinfo(
+                "VICTORIA",
+                "Resolviste el asesinato."
+            )
+
+        else:
+
+            messagebox.showerror(
+                "ERROR",
+                "La acusación fue incorrecta."
+            )
+
+    tk.Button(
+        ventana,
+        text="CONFIRMAR",
+        command=confirmar,
+        bg="darkred",
+        fg="white"
+    ).pack(pady=20)
+
+# =========================================================
+# NAVEGACION
+# =========================================================
+
+def siguiente():
+
+    global indice
+
+    indice += 1
+
+    if indice >= len(habitaciones):
+        indice = 0
+
+    cargar_habitacion()
+
+def anterior():
+
+    global indice
+
+    indice -= 1
+
+    if indice < 0:
+        indice = len(habitaciones) - 1
+
+    cargar_habitacion()
+
+# =========================================================
+# MENU
+# =========================================================
+
+def mostrar_menu():
+
+    canvas.delete("all")
+
+    canvas.create_image(
+        0,
+        0,
+        anchor="nw",
+        image=menu_tk
+    )
+
+    canvas.create_text(
+        640,
+        90,
+        text="CLUE DRÁCULA",
+        fill="red",
+        font=("Times New Roman", 42, "bold")
+    )
+
+    btn_inicio = tk.Button(
+
+        root,
+
+        text="INICIAR",
+
+        command=iniciar_juego,
+
+        bg="darkred",
+
+        fg="white",
+
+        font=("Arial", 18, "bold")
+    )
+
+    canvas.create_window(
+        640,
+        650,
+        window=btn_inicio
+    )
+
+# =========================================================
+# INICIAR
+# =========================================================
+
+def iniciar_juego():
+
+    cargar_habitacion()
+
+    btn_anterior.place(
+        x=1120,
+        y=140,
+        width=120,
+        height=50
+    )
+
+    btn_siguiente.place(
+        x=1120,
+        y=210,
+        width=120,
+        height=50
+    )
+
+    btn_investigar.place(
+        x=1080,
+        y=310,
+        width=160,
+        height=60
+    )
+
+    btn_interrogar.place(
+        x=1080,
+        y=390,
+        width=160,
+        height=60
+    )
+
+    btn_cuaderno.place(
+        x=1080,
+        y=470,
+        width=160,
+        height=60
+    )
+
+    btn_acusar.place(
+        x=1080,
+        y=550,
+        width=160,
+        height=60
+    )
+
+# =========================================================
+# BOTONES
+# =========================================================
+
+btn_anterior = tk.Button(
+    root,
+    text="⬅",
+    command=anterior
+)
+
+btn_siguiente = tk.Button(
+    root,
+    text="➡",
+    command=siguiente
+)
+
+btn_investigar = tk.Button(
+    root,
+    text="🩸 INVESTIGAR",
+    command=investigar,
+    bg="darkred",
+    fg="white"
+)
+
+btn_interrogar = tk.Button(
+    root,
+    text="🗣 INTERROGAR",
+    command=interrogar,
+    bg="#333366",
+    fg="white"
+)
+
+btn_cuaderno = tk.Button(
+    root,
+    text="📖 CUADERNO",
+    command=abrir_cuaderno,
+    bg="#3a2a1a",
+    fg="white"
+)
+
+btn_acusar = tk.Button(
+    root,
+    text="⚖ ACUSAR",
+    command=acusar,
+    bg="purple",
+    fg="white"
+)
+
+# =========================================================
+# CLICK MAPA
+# =========================================================
+
+canvas.bind(
+    "<Button-1>",
+    click_mapa
+)
+
+# =========================================================
+# INICIO
+# =========================================================
+
+mostrar_menu()
+
+root.mainloop()
